@@ -1,14 +1,67 @@
-/*
-*
+
+	square_side = 20
+	square_color = "green"
+	game_area_height = square_side * 20
+	game_area_width = square_side * 10
+	game_area_x = 50
+	game_area_y = 20
+	tps = 15  // ticks per cycle
+	
+	function Shape(x, y) {
+		this.x = game_area_x + x
+		this.y = game_area_y + y
+		
+		this.draw = function() {
+			jaws.context.strokeStyle = "black"
+			jaws.context.fillStyle = square_color
+			jaws.context.lineWidth = 3
+			jaws.context.strokeRect(this.x, this.y, square_side, square_side)
+			jaws.context.fillRect(this.x, this.y, square_side, square_side)
+		}
+		
+		this.moveDown = function() {
+			this.y += square_side
+		}
+		
+		this.moveRight = function() {
+			this.x += square_side
+		}
+		
+		this.moveLeft = function() {
+			this.x -= square_side
+		}
+		
+		this.hitBottom = function() {
+			if(this.y > game_area_height - square_side) {
+				return true
+			} else {
+				return false
+			}
+		}
+	}
+
+/**
 * GameState is the actual game play. We switch to it once user choses "Start game"
 *
 */
 	function GameState() {
-		var square_side = 20
-		var square_color = "green"
 		var jc = jaws.context
-			
+		
 		this.setup = function() {
+			this.cycle_ticks = 0
+			
+			this.shape = new Shape(40, 40)
+			
+			this.is_piece_moving = true
+			
+			that = this
+			
+		    jaws.on_keydown("left",  function () { that.currentShape().moveLeft() })
+		    jaws.on_keydown("right",  function () { that.currentShape().moveRight() })
+		}
+		
+		this.currentShape = function() {
+			return this.shape
 		}
 		
 		this.draw = function() {
@@ -21,10 +74,6 @@
 			// Draw game area
 			jaws.context.strokeStyle = "white"
 			jaws.context.lineWidth = 1
-			var game_area_height = square_side * 20
-			var game_area_width = square_side * 10
-			var game_area_x = 50
-			var game_area_y = 20
 			jaws.context.strokeRect(game_area_x, game_area_y, game_area_width, game_area_height)
 
 			var line_height = 0
@@ -51,28 +100,34 @@
 				jc.stroke()
 			}
 			
-			// Ok, let's draw one rectangle
-			jaws.context.strokeStyle = "black"
-			jaws.context.fillStyle = square_color
-			jaws.context.lineWidth = 3
-			var x = game_area_x + 40
-			var y = game_area_y + 40
-			jaws.context.strokeRect(x, y, square_side, square_side)
-			jaws.context.fillRect(x, y, square_side, square_side)
+			// Draw the current shape
+			this.shape.draw()
 		}
 		
 		this.update = function() {
-			
+			this.cycle_ticks++
+			if(this.cycle_ticks >= tps) {
+				this.cycle_ticks = 0
+				this.updateTick()
+			}
+		}
+		
+		this.updateTick = function() {
+			if(this.shape.hitBottom()) {
+				this.is_piece_moving = false
+			} else {
+				if(this.is_piece_moving) {
+					this.shape.moveDown()
+				}
+			}
 		}
 	}
 	
-/*
-*
+/**
 * Start menu
 *
 */
 	function MenuState() {
-		
 		this.setup = function() {
 			index = 0
 			jaws.on_keydown(["down","s"],       function()  { index++; if(index >= items.length) {index=items.length-1} } )
@@ -91,8 +146,7 @@
 		}
 	}
  
-/*
-*
+/**
 * Our script-entry point
 *
 */
