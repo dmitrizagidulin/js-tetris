@@ -5,7 +5,7 @@
 	game_area_width = square_side * 10
 	game_area_x = 50
 	game_area_y = 20
-	tps = 15  // ticks per cycle
+	ticks_per_cycle = 25
 	
 	function Shape(x, y) {
 		this.x = game_area_x + x
@@ -63,19 +63,8 @@
 		this.currentShape = function() {
 			return this.shape
 		}
-		
-		this.draw = function() {
-			jaws.clear()
-			
-			// Clear screen
-			jaws.context.fillStyle = "black"
-			jaws.context.fillRect(0,0,jaws.width,jaws.height)
-			
-			// Draw game area
-			jaws.context.strokeStyle = "white"
-			jaws.context.lineWidth = 1
-			jaws.context.strokeRect(game_area_x, game_area_y, game_area_width, game_area_height)
 
+		this.drawGrid = function() {
 			var line_height = 0
 
 			jc.lineWidth = 1
@@ -99,14 +88,27 @@
 				jc.lineTo(line_width, game_area_y + game_area_height)
 				jc.stroke()
 			}
+		}
+		
+		this.draw = function() {
+			// Clear screen
+			jaws.context.fillStyle = "black"
+			jaws.context.fillRect(0,0,jaws.width,jaws.height)
+			
+			// Draw game area
+			jaws.context.strokeStyle = "white"
+			jaws.context.lineWidth = 1
+			jaws.context.strokeRect(game_area_x, game_area_y, game_area_width, game_area_height)
+
+			this.drawGrid()
 			
 			// Draw the current shape
-			this.shape.draw()
+			this.currentShape().draw()
 		}
 		
 		this.update = function() {
 			this.cycle_ticks++
-			if(this.cycle_ticks >= tps) {
+			if(this.cycle_ticks >= ticks_per_cycle) {
 				this.cycle_ticks = 0
 				this.updateTick()
 			}
