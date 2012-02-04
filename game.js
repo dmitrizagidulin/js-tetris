@@ -21,6 +21,32 @@
 		jaws.context.fillText(text, x, y)
 	}
 
+	function GameState() {
+		var square_side = 20
+		var square_color = "green"
+		
+		this.setup = function() {
+		}
+		
+		this.draw = function() {
+			// Clear screen
+			jaws.context.clearRect(0,0,jaws.width,jaws.height)
+			
+			// Ok, let's draw one rectangle
+			jaws.context.strokeStyle = "black"
+			jaws.context.fillStyle = square_color
+			jaws.context.lineWidth = 3
+			var x = 40
+			var y = 40
+			jaws.context.strokeRect(x, y, square_side, square_side)
+			jaws.context.fillRect(x, y, square_side, square_side)
+		}
+		
+		this.update = function() {
+			
+		}
+	}
+	
 /*
 *
 * Start menu
@@ -33,6 +59,7 @@
 			jaws.on_keydown(["down","s"],       function()  { index++; if(index >= items.length) {index=items.length-1} } )
 			jaws.on_keydown(["up","w"],         function()  { index--; if(index < 0) {index=0} } )
 			jaws.on_keydown(["enter","space"],  function()  {
+				jaws.switchGameState(GameState)
 			})
 		}
 		
