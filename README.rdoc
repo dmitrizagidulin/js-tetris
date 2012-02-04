@@ -1,0 +1,5 @@
+= JawsJS Tetris Clone - An HTML5/Canvas/Javascript Tetris clone
+
+== Frameworks
+Uses:
+* http://jawsjs.com/ JawsJS game framework
