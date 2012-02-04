@@ -3,24 +3,6 @@
 * GameState is the actual game play. We switch to it once user choses "Start game"
 *
 */
-//	var fps = document.getElementById("test")
-		
-/**
- * Utility function to draw text
- * @param fontSize
- * @param fillColor
- * @param text
- * @param x
- * @param y
- */
-	function drawText(fontSize, fillColor, text, x, y) {
-		jaws.context.font = "bold "+fontSize+"pt courier";
-		jaws.context.lineWidth = 10
-		jaws.context.fillStyle =  fillColor
-		jaws.context.strokeStyle =  "rgba(200, 200, 200, 0.0)"
-		jaws.context.fillText(text, x, y)
-	}
-
 	function GameState() {
 		var square_side = 20
 		var square_color = "green"
@@ -31,14 +13,6 @@
 		
 		this.draw = function() {
 			jaws.clear()
-			
-//			jc.lineWidth = 2
-//			jc.strokeStyle = "black"
-//			jc.beginPath()
-//			jc.moveTo(10,10)
-//			jc.lineTo(10, 20)
-//			jc.closePath()
-//			jc.stroke()
 			
 			// Clear screen
 			jaws.context.fillStyle = "black"
@@ -117,12 +91,11 @@
 		}
 	}
  
-	
 /*
 *
 * Our script-entry point
 *
 */
 	window.onload = function() {
-		jaws.start(GameState)
+		jaws.start(MenuState)
 	}
