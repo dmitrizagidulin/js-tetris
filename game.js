@@ -3,11 +3,11 @@
 	square_color = "green"
 	game_area_x = 50
 	game_area_y = 20
-	ticks_per_cycle = 35
+	ticks_per_cycle = 45
 
-	num_rows = 20
+	num_rows = 7
 	last_row = num_rows
-	num_cols = 11
+	num_cols = 4
 	last_col = num_cols
 	game_area_height = square_side * num_rows
 	game_area_width = square_side * num_cols
@@ -33,32 +33,36 @@
 			jaws.context.fillStyle = square_color
 			jaws.context.lineWidth = 3
 			
-			var x = game_area_x + ((this.col - 1) * square_side)
+			var x = game_area_x + (this.col * square_side)
 			var y = game_area_y + (this.row * square_side)
 			jaws.context.strokeRect(x, y, square_side, square_side)
 			jaws.context.fillRect(x, y, square_side, square_side)
 		}
 		
-		this.moveDown = function() {
+		this.moveDown = function(map) {
 			this.row++
 		}
 		
 		this.moveRight = function() {
 			this.col++
-			if(this.col > num_cols) this.col--
+			if(this.col >= num_cols) this.col--
 		}
 		
 		this.moveLeft = function() {
 			this.col--
-			if(this.col < 1) this.col++
+			if(this.col < 0) this.col++
 		}
 		
-		this.hitBottom = function() {
-			if((this.row + 1) >= last_row) {
+		this.hitBottom = function(map) {
+			var new_row = this.row + 1
+			if(new_row >= last_row) {
 				return true
-			} else {
-				return false
 			}
+			if(map[new_row][this.col]) {
+				return true
+			}
+			
+			return false
 		}
 	}
 
@@ -68,15 +72,16 @@
 */
 	function GameState() {
 		var jc = jaws.context
+		this.map = []
 		
 		this.setup = function() {
 			this.cycle_ticks = 0
 			
-			this.shape = new Shape(1, 5)
-			
-			this.is_piece_moving = true
+			this.newShape()
 			
 			that = this
+			
+			this.initMap()
 			
 		    jaws.on_keydown("left",  function () { that.currentShape().moveLeft() })
 		    jaws.on_keydown("right",  function () { that.currentShape().moveRight() })
@@ -86,30 +91,47 @@
 			return this.shape
 		}
 
-		this.drawGrid = function() {
+		this.drawPassive = function() {
 			var line_height = 0
 
 			jc.lineWidth = 0.3
 			jc.strokeStyle = "white"
 			
-			// draw horizontal lines of grid
-			for(var i=1; i < num_rows; i++) {
-				line_height = game_area_y + (i * square_side)
-				jc.beginPath()
-				jc.moveTo(game_area_x, line_height)
-				jc.lineTo(game_area_width + game_area_x, line_height)
-				jc.stroke()
-				jc.closePath()
+			var fillStyle = "black"
+				
+			for(var row = 0; row < num_rows; row++) {
+				for(var col = 0; col < num_cols; col++) {
+					if(this.map[row][col]) {
+						fillStyle = "blue"
+					} else {
+						fillStyle = "black"
+					}
+					jaws.context.fillStyle = fillStyle
+					var x = game_area_x + (col * square_side)
+					var y = game_area_y + (row * square_side)
+					jaws.context.fillRect(x, y, square_side, square_side)
+					jaws.context.strokeRect(x, y, square_side, square_side)
+				}
 			}
-			
-			// Draw vertical lines of grid
-			for(var i=1; i < num_cols; i++) {
-				line_width = game_area_x + (i * square_side)
-				jc.beginPath()
-				jc.moveTo(line_width, game_area_y)
-				jc.lineTo(line_width, game_area_y + game_area_height)
-				jc.stroke()
-			}
+				
+//			// draw horizontal lines of grid
+//			for(var i=1; i < num_rows; i++) {
+//				line_height = game_area_y + (i * square_side)
+//				jc.beginPath()
+//				jc.moveTo(game_area_x, line_height)
+//				jc.lineTo(game_area_width + game_area_x, line_height)
+//				jc.stroke()
+//				jc.closePath()
+//			}
+//			
+//			// Draw vertical lines of grid
+//			for(var i=1; i < num_cols; i++) {
+//				line_width = game_area_x + (i * square_side)
+//				jc.beginPath()
+//				jc.moveTo(line_width, game_area_y)
+//				jc.lineTo(line_width, game_area_y + game_area_height)
+//				jc.stroke()
+//			}
 		}
 		
 		this.draw = function() {
@@ -122,10 +144,27 @@
 			jaws.context.lineWidth = 1
 			jaws.context.strokeRect(game_area_x, game_area_y, game_area_width, game_area_height)
 
-			this.drawGrid()
+			this.drawPassive()
 			
 			// Draw the current shape
-			this.currentShape().draw()
+			if(this.currentShape()) {
+				this.currentShape().draw()
+			}
+		}
+		
+		this.initMap = function() {
+			for(var r=0; r < num_rows; r++) {
+				this.map.push([])
+				for(var c=0; c < num_cols; c++) {
+					this.map[r].push(0)
+				}
+			}
+		}
+		
+		this.newShape = function() {
+			var init_col = parseInt(num_cols / 2)
+			this.shape = new Shape(0, init_col)
+			this.is_piece_moving = true
 		}
 		
 		this.update = function() {
@@ -137,11 +176,14 @@
 		}
 		
 		this.updateTick = function() {
-			if(this.shape.hitBottom()) {
+			if(this.shape && this.shape.hitBottom(this.map)) {
 				this.is_piece_moving = false
+				var piece = this.currentShape()
+				this.map[piece.row][piece.col] = 1
+				this.newShape()
 			} else {
 				if(this.is_piece_moving) {
-					this.shape.moveDown()
+					this.shape.moveDown(this.map)
 				}
 			}
 		}
